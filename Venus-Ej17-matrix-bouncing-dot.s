@@ -1,6 +1,5 @@
 #-------------------------------------------
-#-- Desplazar un pixel a la derecha usando
-#-- el botón 1
+#-- Pixel rebotando en la pantalla
 #-------------------------------------------
 
 #-- Servicios del sistema operativo
