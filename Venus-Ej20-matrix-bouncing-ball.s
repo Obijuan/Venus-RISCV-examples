@@ -57,24 +57,52 @@ ball1:
     .word -1  #-- Velocidad en x
     .word -1  #-- Velocidad en y
 
+ball2:
+    .word 8  #-- Coordenada x
+    .word 6  #-- Coordenada y
+    .word  1  #-- Velocidad en x
+    .word -1  #-- Velocidad en y
+
+ball3:
+    .word 7  #-- Coordenada x
+    .word 5  #-- Coordenada y
+    .word  -1  #-- Velocidad en x
+    .word 1  #-- Velocidad en y
+
+ball4:
+    .word 13  #-- Coordenada x
+    .word 0  #-- Coordenada y
+    .word 1  #-- Velocidad en x
+    .word 1  #-- Velocidad en y
+
+ball5:
+    .word 8  #-- Coordenada x
+    .word 3  #-- Coordenada y
+    .word 1  #-- Velocidad en x
+    .word 1  #-- Velocidad en y
+
+#--- Tabla de punteros a las bolas a animar
+tabla_bolas:
+    .word ball0
+    .word ball1
+    .word ball2
+    .word ball3
+    .word ball4
+    .word ball5
+    .word 0
+
     .text
 
-    #-- Puntero a la bola actual
-    la s0, ball0
-    la s1, ball1
-
 bucle:
+    #-- Puntero a la tabla de bolas
+    la s0, tabla_bolas
 
     #-- Borrar pantalla virtual
     li a0, 0x0000
     jal screen_fill
 
-    #-- Simular bolas y escribirlas en pantalla virtual
-    mv a0, s1
-    jal ball_sim
-
-    mv a0, s0
-    jal ball_sim 
+    #-- Simular todas las bolas
+    jal sim_all
 
     #-- Refrescar pantalla
     jal screen_refresh
@@ -83,6 +111,52 @@ bucle:
     jal wait
 
     j bucle
+
+#------------------------------------------------------
+#-- Simular una tabla completa de bolas
+#-- ENTRADAS:
+#--   a0: Puntero a la tabla de bolas
+#------------------------------------------------------
+sim_all:
+    #-- Crear pila y guardar direccion de retorno
+    addi sp, sp, -16
+    sw ra, 12(sp)
+
+    #-- Guardar registros estaticos
+    sw s0, 0(sp)
+    sw s1, 4(sp)
+
+    #-- s0: Direccion de la tabla
+    mv a0, s0
+
+2:
+
+    #-- Leer puntero a la bola actual
+    lw s1, 0(s0)
+
+    #-- Si es NULL, hemos terminado
+    beq s1, zero, 1f
+
+    #-- Simular la bola actual
+    mv a0, s1
+    jal ball_sim
+
+    #-- Apuntar a la siguiente bola de la tabla
+    addi s0,s0,4
+
+    #-- Siguiente bola
+    j 2b
+
+    #-- Terminar
+1:
+    #-- Recuperar registros estaticos
+    lw s0, 0(sp)
+    lw s1, 4(sp)
+
+    #-- Recuperar direccion de retorno y reponer la pila
+    lw ra, 12(sp)
+    addi sp, sp, 16
+    ret
 
 #-------------------------------------------------------
 #-- Simular la bola indicada
@@ -124,8 +198,6 @@ ball_sim:
     #-- Recuperar direccion de retorno y reponer la pila
     lw ra, 12(sp)
     addi sp, sp, 16
-    ret
-
     ret
 
 
@@ -498,7 +570,7 @@ screen_refresh:
 #-- Esperar
 #-------------------------------------s
 wait:
-    li t0, 0x10
+    li t0, 0x20
 1:
     beq t0, zero, 2f
     nop
